@@ -1,0 +1,14 @@
+.classpath
+.project
+build/
+bin/
+.vscode/
+.settings/
+.gradle/
+*.so
+*.log
+*.dll
+*-low.dds
+*-lower.dds
+*-lower.dds
+*-lowest.dds

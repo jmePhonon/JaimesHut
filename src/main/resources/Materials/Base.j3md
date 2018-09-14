@@ -1,0 +1,36 @@
+MaterialDef Base {
+
+    MaterialParameters {
+          Texture2D ColorMap 
+    }
+
+    Technique {
+        LightMode SinglePass
+
+        VertexShader GLSL150:   Materials/Base.vert
+        FragmentShader GLSL150: Materials/Base.frag
+
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            NormalMatrix
+            WorldViewMatrix
+            ViewMatrix
+            WorldNormalMatrix
+            CameraPosition
+            WorldMatrix
+            WorldMatrixInverse
+            ViewProjectionMatrix     
+            Time       
+            Resolution
+            Aspect
+        }
+
+        Defines {         
+            WorldViewMatrix
+            NormalMatrix
+            WorldViewProjectionMatrix
+        }
+    }
+    
+}

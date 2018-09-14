@@ -1,0 +1,78 @@
+import org.gradle.plugins.ide.eclipse.model.AccessRule
+
+apply plugin : 'java' 
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+
+
+group = "com.jme3.phonon"
+version= project.hasProperty('in_version') ? project.getProperty('in_version') : '-SNAPSHOT'
+
+targetCompatibility = '1.8'
+sourceCompatibility = '1.8'
+
+def jmerepo='com.github.jMonkeyEngine.jmonkeyengine'
+def jmeversion='-SNAPSHOT'
+
+
+def v_physicsloader="-SNAPSHOT"
+def g_physicsloader="wf.frk.jme3"
+def g_f3b="wf.frk.f3b"
+def v_f3b="-SNAPSHOT"
+
+eclipse {
+    classpath {
+        file {
+            whenMerged {
+                def jre = entries.find { it.path.contains 'org.eclipse.jdt.launching.JRE_CONTAINER' }
+                jre.accessRules.add(new AccessRule('accessible', 'com/**'))
+                jre.accessRules.add(new AccessRule('accessible', '**'))
+                jre.accessRules.add(new AccessRule('accessible', 'sun/**'))           
+             }
+        }
+    }
+}
+
+repositories {
+    mavenLocal()
+        mavenCentral()
+maven { url "https://dl.bintray.com/jmephonon/jmePhonon" }
+			maven { url 'https://jitpack.io' }
+      maven {
+            url "http://dl.bintray.com/riccardo/jme3-bullet-native"
+        }
+}
+
+   
+        
+
+dependencies {
+    compile(group: 'com.jme3.phonon', name: 'jmePhonon', version: '0.1.4', ext: 'jar', classifier: '')
+    compile jmerepo + ':jme3-core:' + jmeversion
+        compile jmerepo + ':jme3-bullet:' + jmeversion
+    compile "org.jmonkeyengine.bullet_builder:jme3-bullet-native:jmonkeyengine-master-2018-08-21"
+    compile jmerepo + ':jme3-desktop:' + jmeversion
+    compile jmerepo + ':jme3-lwjgl:' + jmeversion
+    compile ("${g_f3b}:jme3_f3b:${v_f3b}")
+      	compile "${g_physicsloader}:jme3_physicsloader:${v_physicsloader}"
+
+    testCompile 'junit:junit:4.11'
+ 
+}
+
+
+
+task buildFatJar(type: Jar) {
+
+    from sourceSets.test.output
+    manifest {
+        attributes 'Main-Class': 'MainClass'
+    }
+    from {
+        configurations.testCompile.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.testRuntime.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    baseName = project.name + '-fat'
+      with jar 
+}
