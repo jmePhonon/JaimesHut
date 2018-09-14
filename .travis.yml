@@ -1,4 +1,6 @@
 language: java
+git:
+  lfs_skip_smudge: true
 script:
 - gradle downloadResources buildFatJar
 deploy:
