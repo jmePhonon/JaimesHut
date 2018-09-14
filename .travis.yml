@@ -1,0 +1,13 @@
+language: java
+script:
+- gradle downloadResources buildFatJar
+deploy:
+  provider: releases
+  skip_cleanup: true
+  file_glob: true
+  api_key:
+    secure: TZiFYf9lBtuu3yZmo4fvnjP6ZMd5cTH64lbUEWvAllCTzXxfLth0lvyjoByjewZ8vtI+E4K2Q6VUDkZtNayck2Kec75BU1W5Y50vrlJ3lnRQJmhfEHC2yYRwPq+zrGgZqExd2ro5xWLrUHwEu+sm+JED/7tPNsUPhVcSf2cPOB41FgQAUTAdKIAiHqpRObbYuhbTO4Sta6LHe3e6W4T8584Si4qYaNvEteHR8hRzj8ORzgdZRDTzhV2QRGxNbUuoTwnQAbxyRzcboHfCYceYkuLduxIhgSLWdwGRBxoBil6JwZMDyLVzAhvEbKcD97nYNh+LO0ZhCNK6OisJwrxB3Il8vK5Z7rwCESRfyQgW0OyWGgP1sEHRWr9fiw9C0K1p1AZD60+OH8KT6dRtpqxUBRU1MwZ58Nu4mPVEdo6lkvafGjlBmlijICpwbhSjtDBrrzoVedlfj+mx6KDAJSBWNCBQhH2AKh/97tu3fEGSYrQrz5xOCzUzwnAO6pvZX1lBiSBxAxBmZne23HhXomANFUUxDvCR0jdWmma5bc5yxOag7b0o4nyoA3Fo186Cm2yJTMpeJX+lNTTTrs38mjV+IZajZ3wOO1RH5BK1Hnt9fKNv2gCWWVnMa2Un9as1lAaAmrAg19IWm3zCzLZzqvGqd5KOJhgkcG0OtOHeqQwycuc=
+  file: build/libs/JaimesHut-fat-*.jar
+  on:
+    repo: jmePhonon/JaimesHut
+    tags: true
