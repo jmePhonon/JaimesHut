@@ -1,5 +1,11 @@
 rootProject.name = "JaimesHut"
-if(System.getenv()["DEV"]!=null){
+if(
+    (System.getenv()["DEV"]!=null&&System.getenv()["DEV"]=="1")
+    ||
+    (System.getenv()["DEV"]==null&&new File(settingsDir,"../jmePhonon").exists())
+
+){
+    gradle.ext.useDevDependency = true
     include ':jmePhonon'
     project(':jmePhonon').projectDir = new File(settingsDir, '../jmePhonon')
 }

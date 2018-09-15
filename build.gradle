@@ -50,8 +50,8 @@ maven { url "https://dl.bintray.com/jmephonon/jmePhonon" }
 
 
 def jmephonondep;
-if(System.getenv()["DEV"]!=null){
-    printf("Use dev dependency "+System.getenv()["DEV"]);
+if(gradle.ext.useDevDependency){
+        printf("Use dev dependency");
     jmephonondep= project(':jmePhonon');
 
 }else{
