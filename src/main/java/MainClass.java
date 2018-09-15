@@ -22,9 +22,11 @@ import com.jme3.light.Light;
 import com.jme3.light.PointLight;
 import com.jme3.light.SpotLight;
 import com.jme3.math.Vector3f;
+import com.jme3.phonon.Phonon;
 import com.jme3.phonon.PhononRenderer;
 import com.jme3.phonon.PhononSettings;
 import com.jme3.phonon.ThreadMode;
+import com.jme3.phonon.desktop_javasound.JavaSoundPhononSettings;
 import com.jme3.physicsloader.impl.bullet.BulletPhysicsLoader;
 import com.jme3.scene.Spatial;
 import com.jme3.system.AppSettings;
@@ -43,12 +45,12 @@ public class MainClass extends SimpleApplication implements PhysicsTickListener,
     public static void main(String[] args) {
         AppSettings settings=new AppSettings(true);
         settings.setRenderer(AppSettings.LWJGL_OPENGL3);
-        settings.setAudioRenderer(null);
+        USE_PHONON=true;
         settings.setWidth(1440);
         settings.setHeight(900);
         MainClass app=new MainClass();
         app.setSettings(settings);
-        app.setShowSettings(false);
+        app.setShowSettings(true);
 
         app.start();
     }
@@ -68,32 +70,20 @@ public class MainClass extends SimpleApplication implements PhysicsTickListener,
     WeakHashMap<Light,Spatial> LIGHTSxSPATIALS=new WeakHashMap<Light,Spatial>();
 
     AudioNode FOOTSTEPS,BACKGROUND;
-    boolean IS_PHONON=false;
+    static boolean USE_PHONON=false;
     @Override
     public void simpleInitApp() {
+      
         this.setPauseOnLostFocus(false);
         this.setDisplayStatView(false);
         this.setDisplayFps(true);
-        if (audioRenderer == null) {
-            double latency = ((double) 1000 / 44100) * FRAME_SIZE * FRAME_BUFFER + MAX_PREBUFFERING;
-            System.out.println("Expected Latency " + latency);
-            PhononSettings effects = new PhononSettings();
-            effects.passThrough = false;
-            try {
-                audioRenderer = new PhononRenderer(44100, OUTPUT_LINES, 32, CHANNELS, FRAME_SIZE,
-                        FRAME_BUFFER, 16, MAX_PREBUFFERING, ThreadMode.JAVA, effects);
+        if (USE_PHONON) {
+                  try {
+                JavaSoundPhononSettings settings=new JavaSoundPhononSettings();
+                Phonon.init(settings, this);
             } catch (Exception e1) {
                 e1.printStackTrace();
-            }
-
-            audioRenderer.initialize();
-
-            AudioContext.setAudioRenderer(audioRenderer);
-            listener = new Listener();
-            listener.setRenderer(audioRenderer);
-            listener.setVolume(1);
-            audioRenderer.setListener(listener);
-            IS_PHONON=true;
+            }         
         }
 
 
@@ -148,7 +138,7 @@ public class MainClass extends SimpleApplication implements PhysicsTickListener,
             }
             if(sx instanceof AudioNode){
                 AudioNode an=(AudioNode)sx;
-                if(!IS_PHONON){
+                if(!USE_PHONON){
                     an.setRefDistance(1f);
                     an.setMaxDistance(10000);
                     an.setVolume(an.getVolume()*0.5f);
