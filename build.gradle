@@ -19,6 +19,9 @@ def v_physicsloader="78ba1acde9f2665f2f8eb0a0f0c5d0304b13d5bf"
 def g_physicsloader="com.github.riccardobl"
 def g_f3b="com.github.f3b"
 def v_f3b="f93b341389dac7b494f29f85566d5e8b5d814208"
+def v_phonon="0.1.4"
+
+
 
 eclipse {
     classpath {
@@ -45,21 +48,26 @@ maven { url "https://dl.bintray.com/jmephonon/jmePhonon" }
         }
 }
 
-   
-        
+
+def jmephonondep;
+if(System.getenv()["DEV"]!=null){
+    printf("Use dev dependency "+System.getenv()["DEV"]);
+    jmephonondep= project(':jmePhonon');
+
+}else{
+    jmephonondep="com.jme3.phonon:jmePhonon:"+v_phonon;
+}
 
 dependencies {
-    compile(group: 'com.jme3.phonon', name: 'jmePhonon', version: '0.1.4', ext: 'jar', classifier: '')
+    compile jmephonondep
     compile jmerepo + ':jme3-core:' + jmeversion
-        compile jmerepo + ':jme3-bullet:' + jmeversion
+    compile jmerepo + ':jme3-bullet:' + jmeversion
     compile "org.jmonkeyengine.bullet_builder:jme3-bullet-native:jmonkeyengine-master-2018-08-21"
     compile jmerepo + ':jme3-desktop:' + jmeversion
     compile jmerepo + ':jme3-lwjgl:' + jmeversion
     compile ("${g_f3b}:jme3_f3b:${v_f3b}")
-      	compile "${g_physicsloader}:jme3_physicsloader:${v_physicsloader}"
-
-    testCompile 'junit:junit:4.11'
- 
+    compile "${g_physicsloader}:jme3_physicsloader:${v_physicsloader}"
+    testCompile 'junit:junit:4.11' 
 }
 
 

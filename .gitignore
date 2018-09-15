@@ -2,7 +2,7 @@
 .project
 build/
 bin/
-.vscode/
+.vscode/settings.json
 .settings/
 .gradle/
 *.so
