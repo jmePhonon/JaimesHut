@@ -8,4 +8,6 @@ if(
     gradle.ext.useDevDependency = true
     include ':jmePhonon'
     project(':jmePhonon').projectDir = new File(settingsDir, '../jmePhonon')
+}else{
+    gradle.ext.useDevDependency =  false
 }
