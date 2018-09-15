@@ -11,9 +11,17 @@
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopOnEntry": false,
-            "mainClass": "MainClass",
+            "mainClass": "JaimesHut",
             "args": "",
             "preLaunchTask": "devBuild"
+
+        },
+        {
+            "type": "java",
+            "name": "Debug (Attach)",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": "<debug port of remote debuggee>"
         }
     ]
 }

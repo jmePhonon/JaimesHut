@@ -41,14 +41,13 @@ import wf.frk.f3b.jme3.runtime.F3bPhysicsRuntimeLoader;
  * of jmePhonon on a real use case. If you need a properly written example, please refer to the
  * non-unit tests on the main repository.
  */
-public class MainClass extends SimpleApplication implements PhysicsTickListener,ActionListener{
+public class JaimesHut extends SimpleApplication implements PhysicsTickListener,ActionListener{
     public static void main(String[] args) {
         AppSettings settings=new AppSettings(true);
         settings.setRenderer(AppSettings.LWJGL_OPENGL3);
         USE_PHONON=true;
-        settings.setWidth(1440);
-        settings.setHeight(900);
-        MainClass app=new MainClass();
+
+        JaimesHut app=new JaimesHut();
         app.setSettings(settings);
         app.setShowSettings(true);
 
