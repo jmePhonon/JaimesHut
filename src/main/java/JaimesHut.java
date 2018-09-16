@@ -27,7 +27,11 @@ import com.jme3.phonon.PhononRenderer;
 import com.jme3.phonon.PhononSettings;
 import com.jme3.phonon.ThreadMode;
 import com.jme3.phonon.desktop_javasound.JavaSoundPhononSettings;
+import com.jme3.phonon.scene.PhononMesh;
+import com.jme3.phonon.scene.PhononMeshBuilder;
 import com.jme3.physicsloader.impl.bullet.BulletPhysicsLoader;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.system.AppSettings;
 
@@ -170,6 +174,15 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
         BACKGROUND.setVolume(0.3f);
         BACKGROUND.setLooping(true);
         BACKGROUND.play();
+
+        PhononMesh mesh=PhononMeshBuilder.build(rootNode,(sx) -> {
+            return (!(sx instanceof Geometry))||sx.getParent().getUserData("game.soundoccluder")!=null;
+
+            
+        });
+        PhononRenderer renderer=(PhononRenderer)audioRenderer;
+        renderer.setScene(mesh);
+        renderer.saveSceneAsObj("/tmp/scene.obj");
     }
     boolean left = false, right = false, up = false, down = false;
     Vector3f camDir=new Vector3f();
