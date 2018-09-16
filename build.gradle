@@ -79,7 +79,7 @@ task buildFatJar(type: Jar) {
 
     from sourceSets.test.output
     manifest {
-        attributes 'Main-Class': 'MainClass'
+        attributes 'Main-Class': 'JaimesHut'
     }
     from {
         configurations.testCompile.collect { it.isDirectory() ? it : zipTree(it) }
