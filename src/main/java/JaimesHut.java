@@ -182,7 +182,7 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
         });
         PhononRenderer renderer=(PhononRenderer)audioRenderer;
         renderer.setScene(mesh);
-        renderer.saveSceneAsObj("/tmp/scene.obj");
+        // renderer.saveSceneAsObj("/tmp/scene.obj");
     }
     boolean left = false, right = false, up = false, down = false;
     Vector3f camDir=new Vector3f();
