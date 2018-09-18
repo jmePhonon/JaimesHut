@@ -76,19 +76,29 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
     static boolean USE_PHONON=false;
     @Override
     public void simpleInitApp() {
-      
-        this.setPauseOnLostFocus(false);
-        this.setDisplayStatView(false);
-        this.setDisplayFps(true);
+        PhononRenderer renderer=null;
+        JavaSoundPhononSettings settings=null;
         if (USE_PHONON) {
-                  try {
-                JavaSoundPhononSettings settings=new JavaSoundPhononSettings();
-                Phonon.init(settings, this);
+            try {
+                settings=new JavaSoundPhononSettings();
+                renderer=Phonon.init(settings, this);
+
+                Phonon.loadScene(settings, this, rootNode, (sx) -> {
+                    return (!(sx instanceof Geometry))||sx.getParent().getUserData("game.soundoccluder")!=null;
+                });
+
+
+                // renderer.saveMeshAsObj("/tmp/scene1.obj");
+
             } catch (Exception e1) {
                 e1.printStackTrace();
             }         
         }
 
+        this.setPauseOnLostFocus(false);
+        this.setDisplayStatView(false);
+        this.setDisplayFps(true);
+      
 
 
         flyCam.setMoveSpeed(0);
@@ -175,14 +185,17 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
         BACKGROUND.setLooping(true);
         BACKGROUND.play();
 
-        PhononMesh mesh=PhononMeshBuilder.build(rootNode,(sx) -> {
-            return (!(sx instanceof Geometry))||sx.getParent().getUserData("game.soundoccluder")!=null;
 
-            
-        });
-        PhononRenderer renderer=(PhononRenderer)audioRenderer;
-        renderer.setScene(mesh);
-        // renderer.saveSceneAsObj("/tmp/scene.obj");
+        if (USE_PHONON) {
+            Phonon.loadScene(settings, this, rootNode, (sx) -> {
+                return (!(sx instanceof Geometry))||sx.getParent().getUserData("game.soundoccluder")!=null;
+            });
+
+
+            // renderer.saveMeshAsObj("/tmp/scene1.obj");       
+        }
+
+
     }
     boolean left = false, right = false, up = false, down = false;
     Vector3f camDir=new Vector3f();
