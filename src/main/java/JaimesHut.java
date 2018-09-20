@@ -13,14 +13,21 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.BulletAppState.ThreadingType;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.PhysicsTickListener;
+import com.jme3.bullet.collision.PhysicsCollisionEvent;
+import com.jme3.bullet.collision.PhysicsCollisionListener;
+import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
+import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.input.KeyInput;
+import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
+import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.Light;
 import com.jme3.light.PointLight;
 import com.jme3.light.SpotLight;
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.phonon.Phonon;
 import com.jme3.phonon.PhononRenderer;
@@ -45,7 +52,7 @@ import wf.frk.f3b.jme3.runtime.F3bPhysicsRuntimeLoader;
  * of jmePhonon on a real use case. If you need a properly written example, please refer to the
  * non-unit tests on the main repository.
  */
-public class JaimesHut extends SimpleApplication implements PhysicsTickListener,ActionListener{
+public class JaimesHut extends SimpleApplication implements PhysicsTickListener,ActionListener,PhysicsCollisionListener{
     public static void main(String[] args) {
         AppSettings settings=new AppSettings(true);
         settings.setRenderer(AppSettings.LWJGL_OPENGL3);
@@ -69,15 +76,19 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
     int NB_LIGHTS=0;
     Vector3f WALKDIR=new Vector3f();
     Vector3f VIEWDIR=new Vector3f();
+    AudioNode SQUISH_SOUND;
 
     WeakHashMap<Light,Spatial> LIGHTSxSPATIALS=new WeakHashMap<Light,Spatial>();
 
     AudioNode FOOTSTEPS,BACKGROUND;
     static boolean USE_PHONON=false;
+    Spatial projectile;
+
     @Override
     public void simpleInitApp() {
         PhononRenderer renderer=null;
         JavaSoundPhononSettings settings=null;
+
         if (USE_PHONON) {
             try {
                 settings=new JavaSoundPhononSettings();
@@ -116,14 +127,16 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
         CHARACTER_CONTROL.setPhysicsLocation(new Vector3f(0,10,0));
         PHYSICS.getPhysicsSpace().add(CHARACTER_CONTROL);
         PHYSICS.getPhysicsSpace().addTickListener(this);
+        PHYSICS.getPhysicsSpace().addCollisionListener(this);
 
 
         inputManager.addMapping("LEFT",new KeyTrigger(KeyInput.KEY_A));
         inputManager.addMapping("RIGHT",new KeyTrigger(KeyInput.KEY_D) );
         inputManager.addMapping("DOWN",new KeyTrigger(KeyInput.KEY_S) );
         inputManager.addMapping("UP",new KeyTrigger(KeyInput.KEY_W) );
+        inputManager.addMapping("SHOT",new MouseButtonTrigger(MouseInput.BUTTON_LEFT) );
 
-        inputManager.addListener(this, "LEFT","RIGHT","UP","DOWN");
+        inputManager.addListener(this, "LEFT","RIGHT","UP","DOWN","SHOT");
 
 
         F3bLoader.init(assetManager);
@@ -184,6 +197,9 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
         BACKGROUND.setVolume(0.3f);
         BACKGROUND.setLooping(true);
         BACKGROUND.play();
+        
+        SQUISH_SOUND=new AudioNode(assetManager,"Sounds/271666__honorhunter__tomato-squish-wet.wav",DataType.Buffer);
+        SQUISH_SOUND.setPositional(true);
 
 
         if (USE_PHONON) {
@@ -194,6 +210,12 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
 
             // renderer.saveMeshAsObj("/tmp/scene1.obj");       
         }
+
+        rootNode.depthFirstTraversal(sx -> {
+            if(sx.getUserData("game.projectile")!=null){
+                projectile=sx;
+            }
+        });
 
 
     }
@@ -261,9 +283,25 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
 
     }
 
+    volatile boolean shot=false;
     @Override
     public void physicsTick(PhysicsSpace space, float tpf) {
-    
+        if(shot){
+
+            Spatial projinstance=projectile.clone();
+            projinstance.setLocalTranslation(CHARACTER_CONTROL.getPhysicsLocation().add(VIEWDIR));
+            RigidBodyControl rb=new RigidBodyControl(new BoxCollisionShape(new Vector3f(.2f,.2f,.2f)),1f);
+            projinstance.addControl(rb);
+            space.add(rb);
+            rb.applyImpulse(VIEWDIR.mult(20),Vector3f.ZERO);
+            rb.applyTorqueImpulse(new Vector3f(FastMath.nextRandomFloat(),FastMath.nextRandomFloat(),FastMath.nextRandomFloat()).multLocal(0.1f));
+            this.enqueue(()->{
+                
+                rootNode.attachChild(projinstance);
+   
+            });
+            shot=false;
+        }
 	}
 
     @Override
@@ -281,8 +319,37 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
             case "RIGHT":
                 right=isPressed;
                 break;
+            case "SHOT":
+                if(isPressed) shot=true;
+                break;
         }
     }
+
+    @Override
+    public void collision(PhysicsCollisionEvent event) {
+        Spatial a=event.getNodeA();
+        Spatial b=event.getNodeB();
+        Spatial proj=null;
+            if(a!=null&&a.getUserData("game.projectile")!=null){
+                proj=(Spatial)a;
+            }else if(b!=null&&b.getUserData("game.projectile")!=null){
+                proj=(Spatial)b;
+            }
+
+        
+        if(proj==null) return;
+        // if(event.getAppliedImpulse()>0.5){
+
+        Vector3f vf=proj.getUserData("game.lastsquish.pos");
+        proj.setUserData("game.lastsquish.pos", proj.getWorldTranslation().clone());
+
+        if(vf!=null&&vf.distance(proj.getWorldTranslation())<0.9) return;
+        SQUISH_SOUND.setPitch(FastMath.nextRandomFloat()+.5f);
+            SQUISH_SOUND.setLocalTranslation(event.getPositionWorldOnA());
+            SQUISH_SOUND.playInstance();
+
+        // }
+	}
 
     
 }

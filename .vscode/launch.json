@@ -13,7 +13,8 @@
             "stopOnEntry": false,
             "mainClass": "JaimesHut",
             "args": "",
-            "preLaunchTask": "devBuild"
+            "preLaunchTask": "devBuild",
+            "vmArgs": "-ea"
 
         },
         {

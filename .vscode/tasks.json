@@ -6,7 +6,7 @@
         {
             "label": "devBuild",
             "type": "shell",
-            "command": "DEV=1 gradle build -xtest"
+            "command": "DEBUG=1 gradle build -xtest"
         }
     ]
 }
