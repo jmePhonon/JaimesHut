@@ -1,7 +1,9 @@
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.WeakHashMap;
 
+import com.google.gson.Gson;
 import com.jme3.animation.AnimControl;
 import com.jme3.app.SimpleApplication;
 import com.jme3.audio.AudioContext;
@@ -32,10 +34,16 @@ import com.jme3.math.Vector3f;
 import com.jme3.phonon.Phonon;
 import com.jme3.phonon.PhononRenderer;
 import com.jme3.phonon.PhononSettings;
-import com.jme3.phonon.ThreadMode;
 import com.jme3.phonon.desktop_javasound.JavaSoundPhononSettings;
+import com.jme3.phonon.manager.AudioManager;
+import com.jme3.phonon.manager.JSON;
 import com.jme3.phonon.scene.PhononMesh;
 import com.jme3.phonon.scene.PhononMeshBuilder;
+import com.jme3.phonon.scene.emitters.PositionalSoundEmitterControl;
+import com.jme3.phonon.scene.emitters.SoundEmitterControl;
+import com.jme3.phonon.scene.material.PhononMaterialPresets;
+import com.jme3.phonon.scene.material.SingleMaterialGenerator;
+import com.jme3.phonon.utils.AudioNodesToControl;
 import com.jme3.physicsloader.impl.bullet.BulletPhysicsLoader;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -92,8 +100,31 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
         if (USE_PHONON) {
             try {
                 settings=new JavaSoundPhononSettings();
-                renderer=Phonon.init(settings, this);
+                settings.frameSize=1024;
+                settings.bufferSize=2;
+                settings.maxPreBuffering=1024*2*6; 
+                settings.materialGenerator=new SingleMaterialGenerator(PhononMaterialPresets.metal);
+                settings.nSourcesPerLine=1024;
+                settings.maxConvolutionSources=64;
+                settings.numBounces=32;
+                settings.numDiffuseSamples=2048;
+                settings.irDuration=1.1f;
+                AudioManager mng=new AudioManager(settings,assetManager,new JSON(){
+                    Gson GSON=new Gson();
+                    @Override
+                    public String stringify(Map map) {
+                        return GSON.toJson(map);
+                    }
 
+                    @Override
+                    public Map parse(String json) {
+                        return GSON.fromJson(json,Map.class);
+							}
+
+                        }
+                );
+                renderer=Phonon.init(settings, this);
+                Phonon.setManager(settings,this,mng);
                 Phonon.loadScene(settings, this, rootNode, (sx) -> {
                     return (!(sx instanceof Geometry))||sx.getParent().getUserData("game.soundoccluder")!=null;
                 });
@@ -171,8 +202,18 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
                     an.setVelocityFromTranslation(false);
                     an.setDryFilter(null);
                     an.setReverbEnabled(false);
+                    an.play();
+                }else{
+                    Node n=AudioNodesToControl.convert(assetManager, an);
+                    SoundEmitterControl em= n.getControl(SoundEmitterControl.class);
+                    em.play();
+                    if(em instanceof PositionalSoundEmitterControl){
+                        PositionalSoundEmitterControl pem=(PositionalSoundEmitterControl)em;
+                        pem.setReverbEnabled(true);
+
+                    }
+
                 }
-                an.play();
             }
             if(sx.getControl(AnimControl.class)!=null){
                 AnimControl anim=sx.getControl(AnimControl.class);
@@ -190,7 +231,8 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
         rootNode.attachChild(FOOTSTEPS);
         FOOTSTEPS.setPositional(true);
         FOOTSTEPS.setLooping(true);
-        FOOTSTEPS.setVolume(0.1f);
+        FOOTSTEPS.setVolume(0.4f);
+        FOOTSTEPS.setReverbEnabled(true);
 
         BACKGROUND=new AudioNode(assetManager,"Sounds/423134__dkiller2204__forestmusic.wav",DataType.Buffer);
         BACKGROUND.setPositional(false);
@@ -200,6 +242,7 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
         
         SQUISH_SOUND=new AudioNode(assetManager,"Sounds/271666__honorhunter__tomato-squish-wet.wav",DataType.Buffer);
         SQUISH_SOUND.setPositional(true);
+        SQUISH_SOUND.setReverbEnabled(true);
 
 
         if (USE_PHONON) {
@@ -343,11 +386,10 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
         Vector3f vf=proj.getUserData("game.lastsquish.pos");
         proj.setUserData("game.lastsquish.pos", proj.getWorldTranslation().clone());
 
-        if(vf!=null&&vf.distance(proj.getWorldTranslation())<0.9) return;
-        SQUISH_SOUND.setPitch(FastMath.nextRandomFloat()+.5f);
+        if((vf!=null&&vf.distance(proj.getWorldTranslation())<.9)||proj.getWorldTranslation().distance(cam.getLocation())<.4f) return;
+        // SQUISH_SOUND.setPitch(FastMath.nextRandomFloat()*.1f+.9f);
             SQUISH_SOUND.setLocalTranslation(event.getPositionWorldOnA());
-            SQUISH_SOUND.playInstance();
-
+        SQUISH_SOUND.clone().play();
         // }
 	}
 
