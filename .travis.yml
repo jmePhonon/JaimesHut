@@ -2,7 +2,8 @@ language: java
 git:
   lfs_skip_smudge: true
 script:
-- gradle downloadResources buildFatJar
+- if [ "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_TAG" != "" ]; then git lfs pull; fi
+- gradle buildFatJar
 deploy:
   provider: releases
   skip_cleanup: true
