@@ -35,8 +35,7 @@ import com.jme3.phonon.Phonon;
 import com.jme3.phonon.PhononRenderer;
 import com.jme3.phonon.PhononSettings;
 import com.jme3.phonon.desktop_javasound.JavaSoundPhononSettings;
-import com.jme3.phonon.manager.AudioManager;
-import com.jme3.phonon.manager.JSON;
+
 import com.jme3.phonon.scene.PhononMesh;
 import com.jme3.phonon.scene.PhononMeshBuilder;
 import com.jme3.phonon.scene.emitters.PositionalSoundEmitterControl;
@@ -44,7 +43,6 @@ import com.jme3.phonon.scene.emitters.SoundEmitterControl;
 import com.jme3.phonon.scene.material.PhononMaterialPresets;
 import com.jme3.phonon.scene.material.SingleMaterialGenerator;
 import com.jme3.phonon.utils.AudioNodesToControl;
-import com.jme3.physicsloader.impl.bullet.BulletPhysicsLoader;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
@@ -78,7 +76,6 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
     static int FRAME_BUFFER=3;
     static int MAX_PREBUFFERING=1024*2*4; //2 frame preload
     static int CHANNELS=2;
-    BulletPhysicsLoader BULLET_PHYSICS_LOADER;
     BulletAppState PHYSICS;
     CharacterControl CHARACTER_CONTROL;
     int NB_LIGHTS=0;
@@ -101,30 +98,14 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
             try {
                 settings=new JavaSoundPhononSettings();
                 settings.frameSize=1024;
-                settings.bufferSize=2;
-                settings.maxPreBuffering=1024*2*6; 
                 settings.materialGenerator=new SingleMaterialGenerator(PhononMaterialPresets.metal);
                 settings.nSourcesPerLine=1024;
                 settings.maxConvolutionSources=64;
                 settings.numBounces=32;
                 settings.numDiffuseSamples=2048;
                 settings.irDuration=1.1f;
-                AudioManager mng=new AudioManager(settings,assetManager,new JSON(){
-                    Gson GSON=new Gson();
-                    @Override
-                    public String stringify(Map map) {
-                        return GSON.toJson(map);
-                    }
-
-                    @Override
-                    public Map parse(String json) {
-                        return GSON.fromJson(json,Map.class);
-							}
-
-                        }
-                );
+            
                 renderer=Phonon.init(settings, this);
-                Phonon.setManager(settings,this,mng);
                 Phonon.loadScene(settings, this, rootNode, (sx) -> {
                     return (!(sx instanceof Geometry))||sx.getParent().getUserData("game.soundoccluder")!=null;
                 });
@@ -172,12 +153,11 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
 
         F3bLoader.init(assetManager);
 
-        BULLET_PHYSICS_LOADER=new BulletPhysicsLoader();
-        BULLET_PHYSICS_LOADER.useCompoundCapsule(true);
+    
 
      
         F3bKey key=new F3bKey("scene.f3b")
-        .usePhysics(BULLET_PHYSICS_LOADER).useEnhancedRigidbodies(true)
+        .useEnhancedRigidbodies(true)
         .useEnhancedGhostbodies(true);
 
         Spatial scene=assetManager.loadModel(key);
