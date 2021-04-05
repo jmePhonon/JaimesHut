@@ -37,6 +37,7 @@ eclipse {
 repositories {
     mavenLocal()
     mavenCentral()
+    maven githubPackage.invoke("jmePhonon")
     maven githubPackage.invoke("riccardobl")
 
 }
@@ -67,9 +68,7 @@ dependencies {
 }
 
 
-task downloadResources(type: Exec){
-    commandLine 'bash','prepare.sh'
-} 
+
 
 task buildFatJar(type: Jar) {
 

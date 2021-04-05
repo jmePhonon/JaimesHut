@@ -50,6 +50,7 @@ import com.jme3.system.AppSettings;
 
 import wf.frk.f3b.jme3.F3bKey;
 import wf.frk.f3b.jme3.F3bLoader;
+import wf.frk.f3b.jme3.physicsloader.impl.bullet.BulletPhysicsLoader;
 import wf.frk.f3b.jme3.runtime.F3bPhysicsRuntimeLoader;
 
 /**
@@ -155,8 +156,10 @@ public class JaimesHut extends SimpleApplication implements PhysicsTickListener,
 
     
 
-     
+        BulletPhysicsLoader phyLoader=new BulletPhysicsLoader();
+        phyLoader.useCompoundCapsule(true);
         F3bKey key=new F3bKey("scene.f3b")
+        .usePhysics(phyLoader).useEnhancedRigidbodies(true)
         .useEnhancedRigidbodies(true)
         .useEnhancedGhostbodies(true);
 
