@@ -1,0 +1,41 @@
+
+name: Build  JaimesHut
+on:
+  push:
+  pull_request:
+  release:
+    types: [published]
+  
+jobs:  
+  Build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the repo
+        uses: actions/checkout@v2     
+        with:
+          fetch-depth: 1
+
+      - name: Build with gradle
+        run: |
+          export VERSION="`if [[ $GITHUB_REF == refs\/tags* ]]; then echo ${GITHUB_REF//refs\/tags\//}; fi`"
+          if [ "$VERSION" = "" ];
+          then
+            branch="`if [[ $GITHUB_REF == refs\/heads* ]]; then echo ${GITHUB_REF//refs\/heads\//}; fi`"
+            export VERSION="$branch-SNAPSHOT"
+          fi
+          gradle buildFatJar -Pin_version="$VERSION"
+
+      - name: Upload to release
+        if: github.event_name == 'release'
+        run: |
+          releaseId=$(jq --raw-output '.release.id' ${GITHUB_EVENT_PATH})
+          filename="`ls build/libs/JaimesHut-fat-*.jar`"
+          url="https://uploads.github.com/repos/${GITHUB_REPOSITORY}/releases/$releaseId/assets?name=$(basename $filename)"
+          echo "Upload to $url"
+          curl -L \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/zip" \
+            --data-binary @"$filename" \
+            "$url"
+
